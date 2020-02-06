@@ -24,27 +24,46 @@ defmodule KV.Registry do
     GenServer.cast(server, {:create, name})
   end
 
-  defp spawn_bucket() do
-    {:ok, bucket} = KV.Bucket.start_link([])
-    bucket
-  end
-
   @impl GenServer
   def init(:ok) do
-    {:ok, %{}}
+    names = %{}
+    refs = %{}
+    {:ok, {names, refs}}
   end
 
   @impl GenServer
-  def handle_call({:lookup, name}, _from, names) do
-    {:reply, Map.fetch(names, name), names}
+  def handle_call({:lookup, name}, _from, state) do
+    {names, _} = state
+    {:reply, Map.fetch(names, name), state}
   end
 
   @impl GenServer
-  def handle_cast({:create, name}, names) do
+  def handle_cast({:create, name}, {names, refs}) do
     if Map.has_key?(names, name) do
-      {:noreply, names}
+      {:noreply, {names, refs}}
     else
-      {:noreply, Map.put(names, name, spawn_bucket())}
+      {bucket, ref} = spawn_and_monitor_bucket()
+      refs = Map.put(refs, ref, name)
+      names = Map.put(names, name, bucket)
+      {:noreply, {names, refs}}
     end
+  end
+
+  @impl GenServer
+  def handle_info({:DOWN, ref, :process, _pid, _reason}, {names, refs}) do
+    {name, refs} = Map.pop(refs, ref)
+    names = Map.delete(names, name)
+    {:noreply, {names, refs}}
+  end
+
+  @impl GenServer
+  def handle_info(_msg, state) do
+    {:noreply, state}
+  end
+
+  defp spawn_and_monitor_bucket() do
+    {:ok, bucket} = KV.Bucket.start_link([])
+    ref = Process.monitor(bucket)
+    {bucket, ref}
   end
 end
