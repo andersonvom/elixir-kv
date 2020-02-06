@@ -1,6 +1,22 @@
 # KV
 
-**TODO: Add description**
+A simple key-value store to learn elixir concepts.
+
+## Dependencies
+
+```bash
+brew install elixir
+```
+
+## Development
+
+```bash
+# run all tests once
+mix test
+
+# watch for code changes
+fswatch lib test -o | xargs -n1 -I{} mix test
+```
 
 ## Installation
 
