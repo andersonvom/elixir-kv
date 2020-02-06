@@ -15,6 +15,7 @@ brew install elixir
 mix test
 
 # watch for code changes
+brew install fswatch
 fswatch lib test -o | xargs -n1 -I{} mix test
 ```
 
