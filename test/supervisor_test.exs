@@ -2,8 +2,8 @@ defmodule KV.SupervisorTest do
   use ExUnit.Case, async: true
 
   setup do
-    supervisor = start_supervised!(KV.Supervisor)
-    %{sup: supervisor}
+    {_, pid, _, _} = :sys.get_status(KV.Supervisor)
+    %{sup: pid}
   end
 
   test "should start children", %{sup: sup} do
