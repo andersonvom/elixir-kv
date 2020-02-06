@@ -62,7 +62,7 @@ defmodule KV.Registry do
   end
 
   defp spawn_and_monitor_bucket() do
-    {:ok, bucket} = KV.Bucket.start_link([])
+    {:ok, bucket} = DynamicSupervisor.start_child(KV.BucketSupervisor, KV.Bucket)
     ref = Process.monitor(bucket)
     {bucket, ref}
   end

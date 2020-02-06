@@ -3,8 +3,8 @@ defmodule KVTest do
   doctest KV
 
   test "starts the supervisor" do
-    children = Supervisor.which_children(KV.Supervisor)
+    status = :sys.get_status(KV.Supervisor)
 
-    assert length(children) == 1
+    assert status
   end
 end

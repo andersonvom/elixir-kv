@@ -7,9 +7,10 @@ defmodule KV.SupervisorTest do
   end
 
   test "should start children", %{sup: sup} do
-    [{name, pid, _, _}] = Supervisor.which_children(sup)
+    children = Supervisor.which_children(sup)
 
-    assert is_pid(pid)
-    assert name == KV.Registry
+    names = Enum.map(children, fn {name, _, _, _} -> name end)
+    assert Enum.member?(names, KV.Registry)
+    assert Enum.member?(names, KV.BucketSupervisor)
   end
 end
