@@ -17,8 +17,15 @@ defmodule KVServer do
 
   defp loop_acceptor(socket) do
     {:ok, client} = :gen_tcp.accept(socket)
-    serve(client)
+    Logger.info("Client connected on #{inspect client}")
+    serve_async(client)
     loop_acceptor(socket)
+  end
+
+  defp serve_async(client) do
+    task = fn -> serve(client) end
+    {:ok, pid} = Task.Supervisor.start_child(KVServer.TaskSupervisor, task)
+    :ok = :gen_tcp.controlling_process(client, pid)
   end
 
   defp serve(client) do
