@@ -9,9 +9,10 @@ defmodule KVServer.Application do
 
   def start(_type, _args) do
     port = String.to_integer(System.get_env("KV_PORT") || @default_port)
+    acceptor = {Task, fn -> KVServer.accept(port) end}
     children = [
       {Task.Supervisor, name: KVServer.TaskSupervisor},
-      {Task, fn -> KVServer.accept(port) end},
+      Supervisor.child_spec(acceptor, restart: :permanent)
     ]
 
     # See https://hexdocs.pm/elixir/Supervisor.html
