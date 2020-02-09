@@ -36,7 +36,8 @@ defmodule KVServer do
            do: write_line(client, msg)
 
     case response do
-      {:error, :unknown_command} -> write_line(client, "Unknown Command\r\n")
+      {:error, :unknown_command} -> write_line(client, "UNKNOWN COMMAND\r\n")
+      {:error, :not_found} -> write_line(client, "NOT FOUND\r\n")
       {:error, error} -> quit(client, error)
       _ -> :ok
     end
