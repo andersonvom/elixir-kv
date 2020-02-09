@@ -29,19 +29,36 @@ defmodule KVServer do
   end
 
   defp serve(client) do
-    client
-    |> read_line()
-    |> write_line(client)
+    response =
+      with {:ok, data} <- read_line(client),
+           {:ok, command} <- KVServer.Command.parse(data),
+           {:ok, msg} <- KVServer.Command.run(command),
+           do: write_line(client, msg)
+
+    case response do
+      {:error, :unknown_command} -> write_line(client, "Unknown Command\r\n")
+      {:error, error} -> quit(client, error)
+      _ -> :ok
+    end
 
     serve(client)
   end
 
   defp read_line(client) do
-    {:ok, data} = :gen_tcp.recv(client, 0)
-    data
+    :gen_tcp.recv(client, 0)
   end
 
-  defp write_line(line, client) do
-    :gen_tcp.send(client, line)
+  defp write_line(client, text) do
+    :gen_tcp.send(client, text)
+  end
+
+  defp quit(client, :closed) do
+    Logger.info("Client disconnected from #{inspect client}")
+    exit(:shutdown)
+  end
+
+  defp quit(client, error) do
+    Logger.error("Error from client #{inspect client}")
+    exit(error)
   end
 end
